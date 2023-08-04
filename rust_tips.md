@@ -140,7 +140,7 @@ fn show_vehicle_data<T: Vehicle>(vehicle: T) {
 }
 ```
 
-###コマンド
+### コマンド
 * `cargo init`: パッケージの作成環境を構築
 * `cargo build`: ビルド
   * cargoは外部パッケージを自動でダウンロードしてビルド
