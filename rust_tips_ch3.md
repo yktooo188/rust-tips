@@ -3,6 +3,7 @@
 * 実践Rustプログラミング入門
   * 初田直也【著】/山口聖弘【著】/吉川哲史【著】/豊田優貴【著】/松本健太郎【著】/原将己【著】
 
+## 基本的な型
 ### 文字列型
 strは変更できないプリミティブ型、Stringは変更できる型
 ```rust
@@ -163,5 +164,136 @@ fn main() {
     // and_then: Result型の値に関数を適用し、その結果を新しいResult型として返す
     // x2がOkの場合、funcが呼び出される。Errの場合は呼び出されない
     let next_result = x2.and_then(func);
+}
+```
+
+### Vec
+配列と違い、内部に収められる要素の数を増減できる
+```rust
+fn main() {
+    // println!同様、!はマクロ呼び出しを意味する
+    // 可変個の引数を取るマクロ
+    let mut vec1 = vec![1, 2, 3, 4, 5];
+
+    println!("{:?}", vec1); // [1, 2, 3, 4, 5]
+    println!("{:?}", vec1[2]); // 3
+
+    // Vecはpop, pushがサポート
+    vec1.pop();
+    println!("{:?}", vec1); // [1, 2, 3, 4]
+    vec1.push(5);
+    println!("{:?}", vec1); // [1, 2, 3, 4, 5]
+
+    let mut vec2 = vec![0; 5];
+    println!("{:?}", vec2); // [0, 0, 0, 0, 0]
+
+    for element in &vec2 {
+        println!("{}", element); // [0, 0, 0, 0, 0]
+    }
+}
+```
+
+### スタック領域とヒープ領域
+* スタック領域
+    * コンパイラやOSが自動で割当・解放を実施
+    * 関数内の変数やアドレスに対して割当
+    * スタックのように積み上げでメモリを確保し、開放時は上から順番に実施
+    * **動作がシンプルで高速であるが、固定サイズである必要あり**
+* ヒープ領域
+    * 動的にメモリ領域の確保・解放を実施
+    * **コンパイル時にサイズが分かっていなくても確保したいタイミングで必要な分を確保**
+
+### Box
+ヒープ領域に確保される形式
+そのため、サイズがわからない型を格納したり、ポインタでのデータ渡しが可能
+```rust
+fn print(num: Box<[i32]>) {
+    println!("{:?}", num);
+}
+
+fn main() {
+    let array1 = [1, 2, 3];
+    // printへポインタを渡しているため、どのようなサイズでも渡せる
+    print(Box::new(array1)); // [1, 2, 3]
+
+    let array1 = [4, 5, 6, 7, 8];
+    print(Box::new(array1)); // [4, 5, 6, 7, 8]
+}
+```
+
+## 変数宣言
+### letとmut
+```rust
+fn main() {
+    // 数字の方の場合は、型を指定することが可能
+    let immutable_value: i32 = 10;
+    let mut mutable_value = 100;
+
+    mutable_value += immutable_value;
+    println!("{}", mutable_value); // 110
+}
+```
+
+### if
+if文で評価した値は、変数の束縛や関数の引数にできる
+```rust
+fn main() {
+    let value = 10;
+    if 0 > value {
+        println!("under 0");
+    } else if 0 < value {
+        println!("over 0"); // pass
+    } else {
+        println!("0");
+    }
+
+    // if文を式として使用
+    let result = if 0 < value {
+        value * 1000
+    } else {
+        value * -1000
+    };
+
+    println!("{}", result); // 10000
+}
+```
+
+// loop, while, for
+```rust
+fn main() {
+    // --- loop ---
+    let mut loop_cnt = 0;
+
+    // loopも式なので値を返せる
+    let result = loop {
+        println!("{:?}", loop_cnt); // 0, 1, 2, 3, 4
+        loop_cnt += 1;
+
+        // loopを抜け出すときはbreak
+        if loop_cnt == 5 {
+            break loop_cnt;
+        }
+    };
+
+    // --- while ---
+    let mut while_cnt = 0;
+
+    while while_cnt < 5 {
+        println!("{}", while_cnt); // 0, 1, 2, 3, 4
+        while_cnt += 1;
+    }
+
+    // --- for ---
+    let for_cnt: i32;
+
+    for for_cnt in 0..5 {
+        println!("{}", for_cnt); // 0, 1, 2, 3, 4
+    }
+
+    let nums = [100, 101, 102];
+
+    for element in &nums {
+        println!("{}", element); // 100, 101, 102
+    }
 }
 ```
