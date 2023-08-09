@@ -297,3 +297,48 @@ fn main() {
     }
 }
 ```
+
+### match
+matchはif文よりも高度なパターンマッチが可能
+数字や文字列の比較だけではなく、列挙型やタプル、構造体などの比較も可能
+```rust
+fn main() {
+    let value: i32 = 100;
+
+    match value {
+        100 => println!("100"),
+        _ => println!("Not 100"),
+    }
+}
+```
+
+列挙型での例
+また、結果を変数に格納もできる
+```rust
+enum Vehicle {
+    Prius,
+    LandCruiser,
+}
+
+fn main() {
+    let vehicle = Vehicle::Prius;
+
+    let res = match vehicle {
+        Vehicle::Prius => "Prius!",
+        Vehicle::LandCruiser => "Land Cruiser!",
+    };
+
+    println!("{}", res); // Prius!
+}
+
+```
+
+### Range
+特定範囲の数字の指定
+```rust
+fn main() {
+    for num in 1..3 {
+        println!("{}", num); // 1, 2
+    }
+}
+```
