@@ -342,3 +342,102 @@ fn main() {
     }
 }
 ```
+
+### Iterator
+オブジェクトを順番に取り扱うことができる
+nextの実装が必要
+```rust
+pub trait Iterator {
+    type Item;
+
+    // Required method
+    fn next(&mut self) -> Option<Self::Item>;
+}
+```
+```rust
+fn main() {
+    let iterator = Iter { current: 0, max: 5 };
+
+    for num in iterator {
+        println!("{}", num); // 0, 1, 2, 3, 4
+    }
+}
+
+// 自作の構造体
+struct Iter {
+    current: usize,
+    max: usize,
+}
+
+// 構造体Iterに対して、Iteratorを適用
+impl Iterator for Iter {
+    type Item = usize; // イテレータが返す型が必要。usizeは符号なし整数
+
+    // 復習：Option型は、取得できないかもしれない値を表現
+    // イテレーションを進め、次の要素を取得するためにnextが必要
+    fn next(&mut self) -> Option<usize> {
+        self.current += 1; // まずは、現在の値を1増やす
+        if self.current - 1 < self.max {
+            // maxより小さいとき
+            Some(self.current - 1) // イテレータの次の要素を返すにはSome, Noneが一般的
+        } else {
+            None
+        }
+    }
+}
+```
+
+## 関数
+### fn
+```rust
+fn main() {
+    let x1 = multiply(10, 20);
+    println!("{}", x1); // 30
+
+    let x2 = abs(-100);
+    println!("{}", x2); // 100
+}
+
+fn multiply(val1: i32, val2: i32) -> i32 {
+    // 関数内の最後にセミコロン無しで記述された値が戻り値
+    val1 + val2
+}
+
+fn abs(val: i32) -> i32 {
+    if val < 0 {
+        // 処理の途中で戻り値を返したい時はreturnを使用
+        return -val;
+    }
+    val
+}
+```
+
+### impl
+```rust
+struct Vehicle {
+    name: String,
+    price: f32,
+}
+
+// implで構造体にメソッドを加える
+// データに関係のある関数を紐付けておけば、オブジェクト指向のクラスのように扱える
+impl Vehicle {
+    fn output_name(&self) {
+        println!("Thic vehicle is {}.", self.name);
+    }
+
+    fn calc_price(&self){
+        println!("The price is {}.", self.price * 1.10)
+    }
+}
+
+fn main() {
+    let prius = Vehicle{
+        name: String::from("Prius"),
+        price: 3000000.0,
+    };
+
+    prius.output_name(); // Thic vehicle is Prius.
+    prius.calc_price(); // The price is 3300000.
+}
+```
