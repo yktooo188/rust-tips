@@ -413,10 +413,14 @@ fn abs(val: i32) -> i32 {
 ```
 
 ### impl
+* implによって構造体にメソッドを加えられる
+* メソッドの戻り値に自分自身の方を指定すると、メソッドチェーンが使える
+* 関連関数はコンストラクタや、同じ構造体の関数をまとめられる
 ```rust
 struct Vehicle {
     name: String,
     price: f32,
+    unit: String,
 }
 
 // implで構造体にメソッドを加える
@@ -426,18 +430,196 @@ impl Vehicle {
         println!("Thic vehicle is {}.", self.name);
     }
 
-    fn calc_price(&self){
-        println!("The price is {}.", self.price * 1.10)
+    // 戻り値をselfにすることで、メソッドチェーンが使用可能
+    fn calc_price(&self) -> &Self {
+        print!("The price is {} ", self.price * 1.10);
+        self
+    }
+
+    fn output_unit(&self) -> &Self {
+        println!("{}.", self.unit);
+        self
+    }
+
+    // 関連関数
+    // implの中でselfを引数に取らない関数を定義
+    fn new(name: &str, price: f32, unit: &str) -> Vehicle {
+        Vehicle {
+            name: String::from(name),
+            price: price,
+            unit: String::from(unit),
+        }
     }
 }
 
 fn main() {
-    let prius = Vehicle{
+    let prius = Vehicle {
         name: String::from("Prius"),
         price: 3000000.0,
+        unit: String::from("Yen"),
     };
 
     prius.output_name(); // Thic vehicle is Prius.
-    prius.calc_price(); // The price is 3300000.
+    prius.calc_price().output_unit(); // The price is 3300000 Yen.
+
+    // Vehicle構造体に関連付いていることを明示的に示す
+    let rav4 = Vehicle::new("Rav4", 4500000.0, "Yen");
+    rav4.output_name(); // Thic vehicle is Rav4.
+    rav4.calc_price().output_unit(); // The price is 4950000 Yen.
+}
+```
+
+## マクロ
+### 文字列操作
+* concat!: リテラルを結合する
+* format!: フォーマット文字列と値から文字列を作成する
+```rust
+fn main() {
+    let str1 = concat!("Text1", "Text2", "Text3");
+    println!("{}", str1); // Text1Text2Text3
+
+    let str2 = format!("{}-{:?}", str1, ("Text4", 5));
+    println!("{}", str2); // Text1Text2Text3-("Text4", 5)
+
+    let str3 = format!("{}{}", "ABC", "DEF");
+    println!("{}", str3); // ABCDEF
+}
+```
+
+### データ出力
+* print!, println!: 標準出力に出力する
+* eprint!, eprintln!: 標準エラー出力に出力する
+* write!, writeln": バッファにバイト列を出力する
+* dbg!: ファイル名、行数、式、式の値を標準エラー出力に出力する
+
+```rust
+use std::io::Write;
+
+fn main() {
+    print!("hello"); // hello
+    println!("hello {}", "world"); // hello world
+
+    let x: Result<i32, String> = Err(200.to_string());
+
+    match x {
+        Ok(value) => println!("Standart Output! {}", value),
+        Err(error) => eprintln!("Standart Error! {}", error), // Standart print! 200 at standard error
+    };
+
+    let mut w = Vec::new();
+    write!(&mut w, "{}", "abc"); // 97, 98, 99 (UTF-8)
+    writeln!(&mut w, "def"); // 100, 101, 102, 10 (UTF-8)
+    dbg!(w); // 上記を出力
+    dbg!(1 + 2 + 3); // 1 + 2 + 3 = 6
+}
+```
+
+### 異常終了
+* panic!: 異常終了させる
+```rust
+fn main() {
+    let x: i32 = 10;
+
+    if x == 10 {
+        panic!("finish program"); // thread 'main' panicked at 'finish program', src/main.rs:5:9
+    }
+}
+```
+
+### ベクタの初期化
+* vec!: Vec<T>を初期化する
+```rust
+fn main() {
+    let mut vec: Vec<i32> = Vec::new();
+    vec.push(1);
+    vec.push(2);
+    vec.push(3);
+    println!("{:?}", vec); // [1, 2, 3]
+
+    let vec_macro = vec![1, 2, 3];
+    println!("{:?}", vec_macro); // [1, 2, 3]
+}
+```
+
+### リソースへのアクセス
+* file!: ファイル名を取得する
+* line!: 行番号を取得する
+* cfg!: コンパイラの情報のboolを返す
+* env!: 環境変数を取得する
+```rust
+fn main() {
+    println!("this file is defined in {}", file!()); // this file is defined in src/main.rs
+    println!("this file is defined on line {}", line!()); // this file is defined on line 3
+    println!("target of is {}", cfg!(target_os = "linux")); // is test true
+    println!("CARGO_HOME {}", env!("CARGO_HOME")); // CARGO_HOME /playground/.cargo
+    println!("CARGO {}", env!("CARGO")); // CARGO /playground/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo
+}
+```
+### アサーション
+* assert!: 引数がtrueであることを表明する
+* assert_eq!, debug_assert_eq!: 2つの引数が等しいことを表明する
+* assert_ne!, debug_assert_ne!: 2つの引数が等しくないことを表明する
+```rust
+fn main() {
+    assert!(true);
+    assert_eq!(1, 1);
+    assert_ne!(1, 0);
+    println!("debug"); // debug
+
+    // 行か、cargo run --release時は無視される
+    debug_assert!(false); // thread 'main' panicked at 'assertion failed: false', src/main.rs:7:5
+    debug_assert_eq!(1, 1);
+    debug_assert_ne!(1, 0);
+}
+```
+
+### 実装の補助
+* unimplemented!: 実装されていないことを示す
+* todo!: 今後実装されることを示す
+* unreachable!: 処理が到達しないことを示す
+```rust
+// ShipStatusはDebugトレイトが実装されていないため指定必要
+#[derive(Debug)]
+enum ShipStatus {
+    ShipNg, // SHIP_NGはダメ
+    ShipOk,
+}
+
+trait Vehicle {
+    fn get_price(&mut self) -> i32;
+    fn get_ship_status(&mut self) -> String;
+    fn get_discount_rate(&self) -> i32;
+}
+
+struct Prius {
+    price: i32,
+    ship_status: ShipStatus,
+}
+
+impl Vehicle for Prius {
+    fn get_price(&mut self) -> i32 {
+        // i32をreturnせずとも型検査を通過
+        unimplemented!()
+    }
+
+    fn get_ship_status(&mut self) -> String {
+        // format!: フォーマット後の文字列を取得
+        // 列挙型ShipStatusの内容を文字列として出力
+        format!("{:?}", self.ship_status)
+    }
+
+    fn get_discount_rate(&self) -> i32 {
+        // i32をreturnせずとも型検査を通過
+        todo!()
+    }
+}
+
+fn main() {
+    let mut prius = Prius {
+        price: 3000000,
+        ship_status: ShipStatus::ShipOk,
+    };
+
+    println!("Ship Status: {}", prius.get_ship_status()); // Ship Status: ShipOk
 }
 ```
