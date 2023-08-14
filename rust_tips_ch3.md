@@ -623,3 +623,51 @@ fn main() {
     println!("Ship Status: {}", prius.get_ship_status()); // Ship Status: ShipOk
 }
 ```
+
+### トレイト
+* PartialEq: オブジェクト同士の等価の振る舞い
+* Eq: 同じ値での比較が全て真のときに付与できる
+* PartialOrd: 大小を比較するための振る舞い
+* Ord: 順序付けできないものだけに付与できる
+* Copy: =演算子を使った時に、所有権の移動ではなくクローンを行う
+* Clone: クローンできる振る舞いの追加。Cloneも必要
+* Debug: デバッグ出力できる振る舞いの追加
+* Default: 構造体のデフォルト値を決められる
+```rust
+#[derive(Eq, PartialEq)]
+struct A(i32);
+
+#[derive(PartialEq, PartialOrd)]
+struct B(f32);
+
+#[derive(Copy, Clone)]
+struct C;
+
+#[derive(Clone)]
+struct D;
+
+#[derive(Debug)]
+struct E;
+
+#[derive(Default, Debug)]
+struct F;
+
+fn main() {
+    println!("{:?}", A(0) == A(1)); // false
+
+    println!("{:?}", B(1.0) > B(0.0)); // true
+
+    let c0 = C;
+    let _c1 = c0;
+    let _c2 = c0;
+
+    let d0 = D;
+    let _d1 = d0.clone();
+
+    // デバッグプリントが可能
+    println!("{:?}", E);
+
+    let _f = F::default();
+    println!("{:?}", _f);
+}
+```
