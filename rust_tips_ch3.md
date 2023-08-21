@@ -625,49 +625,101 @@ fn main() {
 ```
 
 ### トレイト
-* PartialEq: オブジェクト同士の等価の振る舞い
-* Eq: 同じ値での比較が全て真のときに付与できる
-* PartialOrd: 大小を比較するための振る舞い
-* Ord: 順序付けできないものだけに付与できる
-* Copy: =演算子を使った時に、所有権の移動ではなくクローンを行う
-* Clone: クローンできる振る舞いの追加。Cloneも必要
-* Debug: デバッグ出力できる振る舞いの追加
-* Default: 構造体のデフォルト値を決められる
+* Rustでは`derive`を使って構造体や列挙型に振る舞いを追加できる
+    * PartialEq: オブジェクト同士が等価であることを比較する振る舞い
+    * Eq: 同じ値での比較が全て真のときに付与できる振る舞い
+        * Eqを実装するには、PartialEqも実装が必要
+        * 浮動小数だとEqではダメ
+    * PartialOrd: 大小を比較するための振る舞い
+        * PartialEqも一緒に実装が必要
+    * Ord: 順序付けできないものだけに付与できる
+    * Copy: =演算子を使った時に、所有権の移動ではなくクローンを行う振る舞い
+        * Cloneも一緒に実装が必要
+    * Clone: クローンできる振る舞い
+    * Debug: デバッグ出力できる振る舞いの追加
+    * Default: 構造体のデフォルト値を決められる
 ```rust
-#[derive(Eq, PartialEq)]
+// --- Eq, PartialEq ---
+#[derive(PartialEq)]
 struct A(i32);
 
+#[derive(Debug)]
+struct A1(i32);
+
+// --- PartialOrd ---
 #[derive(PartialEq, PartialOrd)]
 struct B(f32);
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq)]
+struct B1(f32);
+
+// --- Copy, Clone ---
+#[derive(Copy, Clone, Debug)]
 struct C;
 
-#[derive(Clone)]
+#[derive(Debug)]
+struct C1;
+
+#[derive(Clone, Debug)]
 struct D;
 
+// --- Debug ---
 #[derive(Debug)]
 struct E;
 
+// --- Default ---
 #[derive(Default, Debug)]
-struct F;
+struct F {
+    name: String,
+    price: f32,
+}
+
+#[derive(Debug)]
+struct F1 {
+    name: String,
+    price: f32,
+}
 
 fn main() {
-    println!("{:?}", A(0) == A(1)); // false
+    // --- Eq, PartialEq ---
+    println!("{:?}", A(0) == A(0)); // false
 
+    // println!("{:?}", A1(0) == A1(0)); // an implementation of `PartialEq` might be missing for `A1`
+
+    // --- PartialOrd ---
     println!("{:?}", B(1.0) > B(0.0)); // true
 
-    let c0 = C;
-    let _c1 = c0;
-    let _c2 = c0;
+    // println!("{:?}", B1(1.0) > B1(0.0)); // an implementation of `PartialOrd` might be missing for `B1`
 
-    let d0 = D;
-    let _d1 = d0.clone();
+    // --- Copy ---
+    // 所有権の移動ではなく、クローンが行われている
+    let c = C;
+    let clone1 = c;
+    let clone2 = c;
 
-    // デバッグプリントが可能
-    println!("{:?}", E);
+    let clone1_pointer = &clone1 as *const C;
+    let clone2_pointer = &clone1 as *const C;
+    println!("{:?}", clone1_pointer); // 0x7ffcf39b5b38
+    println!("{:?}", clone2_pointer); // 0x7ffcf39b5b40
 
-    let _f = F::default();
-    println!("{:?}", _f);
+    let c1 = C1;
+    let clone1_1 = c1; // 所有権が移動
+
+    // let clone1_2 = c1; // move occurs because `c1` has type `C1`, which does not implement the `Copy` trait
+
+    // --- Clone ---
+    let d = D;
+    let clone_d = d.clone();
+    println!("{:?}", clone_d); // D
+
+    // --- Debug ---
+    println!("{:?}", E); // E
+
+    // --- Default ---
+    let f = F::default();
+    println!("{:?}", f); // F { name: "", price: 0.0 }
+
+    // let f1 = F1::default();
+    // the following trait defines an item `default`, perhaps you need to implement it:
 }
 ```
